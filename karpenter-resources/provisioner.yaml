@@ -1,0 +1,42 @@
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  name: express-test
+spec:
+  # Enables consolidation which attempts to reduce cluster cost by both removing un-needed nodes and down-sizing those
+  # that can't be removed.  Mutually exclusive with the ttlSecondsAfterEmpty parameter.
+  providerRef:
+    name: express-test
+  consolidation:
+    enabled: true
+  # Requirements that constrain the parameters of provisioned nodes.
+  # These requirements are combined with pod.spec.affinity.nodeAffinity rules.
+  # Operators { In, NotIn } are supported to enable including or excluding values
+  requirements:
+    - key: "karpenter.sh/capacity-type" # If not included, the webhook for the AWS cloud provider will default to on-demand
+      operator: In
+      values: ["spot", "on-demand"]
+    - key: "topology.kubernetes.io/zone"
+      operator: In
+      values: ["us-west-2a", "us-west-2b", "us-west-2c"]
+    - key: "karpenter.k8s.aws/instance-category"
+      operator: In
+      values: ["c", "m", "r"]
+  # Resource limits constrain the total size of the cluster.
+  # Limits prevent Karpenter from creating new instances once the limit is exceeded.
+  labels:
+    managedBy: karpenter
+    provisioner: express-test
+---
+apiVersion: karpenter.k8s.aws/v1alpha1
+kind: AWSNodeTemplate
+metadata:
+  name: express-test
+spec:
+    subnetSelector:
+      alpha.eksctl.io/cluster-name: <cluster-name>
+    securityGroupSelector:
+      alpha.eksctl.io/cluster-name: <cluster-name>
+    tags:
+      managedBy: "karpenter"
+      intent: "apps"
