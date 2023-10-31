@@ -30,7 +30,7 @@ spec:
                 operator: In
                 values:
                 - karpenter
-              - key: provisioner
+              - key: nodepool
                 operator: In
                 values:
                 - express-test
@@ -65,7 +65,7 @@ spec:
                 operator: In
                 values:
                 - karpenter
-              - key: provisioner
+              - key: nodepool
                 operator: In
                 values:
                 - express-test
